@@ -149,8 +149,9 @@ const commentsLoading = ref(true);
 const commentsError = ref(null);
 
 // 无限滚动参数
-const start = ref(0)
-const limit = 10
+// const start = ref(0)
+// const limit = 20
+const page = ref(1)
 const hasMore = ref(true);
 const loadingMore = ref(false);
 const sentinel = ref(null);
@@ -210,16 +211,16 @@ const loadComments = async () => {
   if (loadingMore.value && !searchingParentId.value) return;
   loadingMore.value = true;
 
-  if (start.value === 0) {
+  if (page.value === 1) {
     commentsLoading.value = true;
     commentsError.value = null;
   }
   try {
-  const { comments: newComments, hasMore: serverHasMore } = await commentService.getComments(start.value, limit);
+  const { comments: newComments, hasMore: serverHasMore } = await commentService.getComments(page.value);
     console.log('获取到数据:', {
       newComments: newComments.map(c => c.id),
       serverHasMore,
-      currentStart: start.value
+      currentPage: page.value
     });
 
     if (io && sentinel.value) {
@@ -228,8 +229,20 @@ const loadComments = async () => {
     }
 
     // 更新数据
-    comments.value = [...comments.value, ...newComments];
-    start.value += newComments.length; 
+    // comments.value = [...comments.value, ...newComments];
+    // start.value += newComments.length; 
+    // hasMore.value = serverHasMore;
+
+    if (page.value === 1) {
+      comments.value = newComments;
+    } else {
+      comments.value = [...comments.value, ...newComments];
+    }
+
+    if (newComments.length > 0) {
+      page.value++;
+    }
+    
     hasMore.value = serverHasMore;
 
   } catch (e) {
@@ -276,7 +289,6 @@ const handleSubmit = async () => {
     if (newComment.value.qq) body.qq = newComment.value.qq;
     if (replyingTo.value) body.orid = replyingTo.value;
 
-
     await commentService.postComment(body);
 
     // 成功后清空表单
@@ -284,7 +296,7 @@ const handleSubmit = async () => {
 
     // 重新加载第一页，回到顶部
     comments.value = [];
-    start.value = 0;
+    page.value = 1;
     hasMore.value = true;
     await loadComments();
 
