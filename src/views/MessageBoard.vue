@@ -210,17 +210,16 @@ const isSubmitDisabled = computed(() => {
 const loadComments = async () => {
   if (loadingMore.value && !searchingParentId.value) return;
   loadingMore.value = true;
-
-  if (page.value === 1) {
+  if (currentPage.value === 1) {
     commentsLoading.value = true;
     commentsError.value = null;
   }
   try {
-  const { comments: newComments, hasMore: serverHasMore } = await commentService.getComments(page.value);
+  const { comments: newComments, hasMore: serverHasMore } = await commentService.getComments(currentPage.value, limit);
     console.log('获取到数据:', {
       newComments: newComments.map(c => c.id),
       serverHasMore,
-      currentPage: page.value
+      currentPage: currentPage.value
     });
 
     if (io && sentinel.value) {
@@ -229,20 +228,8 @@ const loadComments = async () => {
     }
 
     // 更新数据
-    // comments.value = [...comments.value, ...newComments];
-    // start.value += newComments.length; 
-    // hasMore.value = serverHasMore;
-
-    if (page.value === 1) {
-      comments.value = newComments;
-    } else {
-      comments.value = [...comments.value, ...newComments];
-    }
-
-    if (newComments.length > 0) {
-      page.value++;
-    }
-    
+    comments.value = [...comments.value, ...newComments];
+    currentPage.value += 1; 
     hasMore.value = serverHasMore;
 
   } catch (e) {
@@ -296,7 +283,7 @@ const handleSubmit = async () => {
 
     // 重新加载第一页，回到顶部
     comments.value = [];
-    page.value = 1;
+    currentPage.value = 1;
     hasMore.value = true;
     await loadComments();
 
