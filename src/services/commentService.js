@@ -74,14 +74,14 @@ export default {
 // console.log('总测试数据:', testComments.length); // 验证数据生成
 
 // export default {
-//     async getComments(start = 0, limit = 10) {
-//         console.log(`[Mock] 请求参数: start=${start}, limit=${limit}`);
+//     async getComments(page = 1) {
+//         console.log(`[Mock] 请求参数: page=${page}`);
 //         await new Promise(resolve => setTimeout(resolve, 800));
-//         const slice = testComments.slice(start, start + limit);
+//         const slice = testComments.slice((page - 1) * 20, page * 20);
 //         console.log('[Mock] 返回数据:', slice.map(c => c.id));
 //         return {
 //             comments: slice,
-//             hasMore: (start + limit) < testComments.length
+//             hasMore: (page * 20) < testComments.length
 //         };
 //     },
 

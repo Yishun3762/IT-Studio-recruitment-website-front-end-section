@@ -149,8 +149,9 @@ const commentsLoading = ref(true);
 const commentsError = ref(null);
 
 // 无限滚动参数
-const currentPage = ref(1)
-const limit = 10
+// const start = ref(0)
+// const limit = 20
+const page = ref(1)
 const hasMore = ref(true);
 const loadingMore = ref(false);
 const sentinel = ref(null);
@@ -209,7 +210,6 @@ const isSubmitDisabled = computed(() => {
 const loadComments = async () => {
   if (loadingMore.value && !searchingParentId.value) return;
   loadingMore.value = true;
-
   if (currentPage.value === 1) {
     commentsLoading.value = true;
     commentsError.value = null;
@@ -275,7 +275,6 @@ const handleSubmit = async () => {
     if (newComment.value.email) body.email = newComment.value.email;
     if (newComment.value.qq) body.qq = newComment.value.qq;
     if (replyingTo.value) body.orid = replyingTo.value;
-
 
     await commentService.postComment(body);
 
