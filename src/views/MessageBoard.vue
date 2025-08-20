@@ -150,8 +150,8 @@ const commentsError = ref(null);
 
 // 无限滚动参数
 // const start = ref(0)
-// const limit = 20
-const page = ref(1)
+const limit = 20
+const currentPage = ref(1)
 const hasMore = ref(true);
 const loadingMore = ref(false);
 const sentinel = ref(null);
