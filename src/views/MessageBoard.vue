@@ -137,7 +137,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import commentService from '@/services/commentService';
 import StarfieldBackground from '@/components/StarfieldBackground.vue';
 import CommentItem from '@/components/CommentItem.vue';
@@ -149,9 +149,7 @@ const commentsLoading = ref(true);
 const commentsError = ref(null);
 
 // 无限滚动参数
-// const start = ref(0)
-const limit = 20
-const currentPage = ref(1)
+const page = ref(1)
 const hasMore = ref(true);
 const loadingMore = ref(false);
 const sentinel = ref(null);
@@ -210,16 +208,16 @@ const isSubmitDisabled = computed(() => {
 const loadComments = async () => {
   if (loadingMore.value && !searchingParentId.value) return;
   loadingMore.value = true;
-  if (currentPage.value === 1) {
+  if (page.value === 1) {
     commentsLoading.value = true;
     commentsError.value = null;
   }
   try {
-  const { comments: newComments, hasMore: serverHasMore } = await commentService.getComments(currentPage.value, limit);
+  const { comments: newComments, hasMore: serverHasMore } = await commentService.getComments(page.value, 10);
     console.log('获取到数据:', {
       newComments: newComments.map(c => c.id),
       serverHasMore,
-      currentPage: currentPage.value
+      page: page.value
     });
 
     if (io && sentinel.value) {
@@ -228,8 +226,12 @@ const loadComments = async () => {
     }
 
     // 更新数据
-    comments.value = [...comments.value, ...newComments];
-    currentPage.value += 1; 
+    if (page.value === 1) {
+      comments.value = newComments;
+    } else {
+      comments.value = [...comments.value, ...newComments];
+    }
+    page.value += 1; 
     hasMore.value = serverHasMore;
 
   } catch (e) {
@@ -245,7 +247,11 @@ const loadComments = async () => {
 const messageList = ref(null);
 
 const setupInfiniteScroll = () => {
-  if (!sentinel.value || !messageList.value ) return;
+  if (!sentinel.value ) return;
+  if (io) {
+    io.disconnect();
+  }
+
   io = new IntersectionObserver((entries) => {
     const entry = entries[0];
     // 仅当用户在第一页发生过一次滚动后，才允许加载第二页
@@ -283,7 +289,7 @@ const handleSubmit = async () => {
 
     // 重新加载第一页，回到顶部
     comments.value = [];
-    currentPage.value = 1;
+    page.value = 1;
     hasMore.value = true;
     await loadComments();
 
@@ -313,9 +319,11 @@ const cancelReply = () => {
   replyingToInfo.value = null;
 };
 
-onMounted(() => {
-  loadComments();
-  setupInfiniteScroll();
+onMounted(async () => {
+  await loadComments();
+  nextTick(()=> {
+    setupInfiniteScroll();
+  });
 });
 
 onBeforeUnmount(() => {
@@ -397,8 +405,12 @@ const searchParentComment = async () => {
   }
   
   // 继续搜索
-  if (searchingParentId.value) {
-    setTimeout(() => searchParentComment(), 0);
+  if (searchingParentId.value && hasMore.value && currentAttempts < maxSearchAttempts) {
+  setTimeout(() => searchParentComment(), 0);
+  } else {
+    searchStatus.value = 'not-found';
+    searchingParentId.value = null;
+    if (searchTimeout.value) clearTimeout(searchTimeout.value);
   }
 };
 

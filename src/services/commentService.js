@@ -51,7 +51,7 @@ export default {
 //         `用户${id}说: 无限滚动功能测试中...`,
 //         `分页测试 ${id}/100 - 确保每次加载10条且无重复数据。`
 //     ];
-//     return messages[id % messages.length];
+//     return messages[(id - 1) % messages.length];
 // };
 
 // const generateTestComments = () => {
@@ -74,14 +74,14 @@ export default {
 // console.log('总测试数据:', testComments.length); // 验证数据生成
 
 // export default {
-//     async getComments(page = 1) {
-//         console.log(`[Mock] 请求参数: page=${page}`);
+//     async getComments(page = 1, limit = 10) {
+//         console.log(`[Mock] 请求参数: page=${page}, limit=${limit}`);
 //         await new Promise(resolve => setTimeout(resolve, 800));
-//         const slice = testComments.slice((page - 1) * 20, page * 20);
+//         const slice = testComments.slice((page - 1) * 10, page * 10);
 //         console.log('[Mock] 返回数据:', slice.map(c => c.id));
 //         return {
 //             comments: slice,
-//             hasMore: (page * 20) < testComments.length
+//             hasMore: (page * 10) < testComments.length
 //         };
 //     },
 

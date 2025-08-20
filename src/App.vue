@@ -1,5 +1,5 @@
 <template>
-  <v-app :dark="true" style="background-color: transparent;">
+  <v-app :dark="true" style="background-color: transparent;" class="app">
     <StarfieldBackground />
     <header class="main-header">
       <nav class="main-nav">
@@ -84,3 +84,8 @@ export default {
 }
 </script>
 
+<style scoped>
+.app {
+  overflow: hidden;
+}
+</style>
